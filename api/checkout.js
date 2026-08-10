@@ -25,6 +25,7 @@ module.exports = async (req, res) => {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const items = Array.isArray(body.items) ? body.items : [];
     const lang = String(body.lang || 'EN').slice(0, 2).toUpperCase();
+    const messageText = String(body.messageText || '').slice(0, 480);
 
     const line_items = [];
     items.forEach((id) => {
@@ -55,8 +56,18 @@ module.exports = async (req, res) => {
       // Card is on by default; enable iDEAL / Bancontact in the Stripe Dashboard for EU buyers.
       success_url: origin + '/?paid=1',
       cancel_url: origin + '/?canceled=1',
+      phone_number_collection: { enabled: true },
       shipping_address_collection: { allowed_countries: ['NL','BE','DE','FR','LU','AT','ES','IT','IE','PT','FI','SE','DK','PL'] },
-      metadata: { passport_language: lang, festive_wrapping: body.wrap ? 'yes' : 'no', personal_message: body.message ? 'yes' : 'no' }
+      payment_intent_data: {
+        description: 'Gallerytales order — passport in ' + lang + (body.wrap ? ', festive wrapping' : '') + (body.message ? ', personal message' : '')
+      },
+      metadata: {
+        passport_language: lang,
+        festive_wrapping: body.wrap ? 'yes' : 'no',
+        personal_message: body.message ? 'yes' : 'no',
+        message_text: messageText,
+        terms_accepted: body.terms ? 'yes' : 'no'
+      }
     });
 
     res.status(200).json({ url: session.url });
