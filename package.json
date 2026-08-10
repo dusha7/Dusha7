@@ -1,0 +1,9 @@
+{
+  "name": "gallerytales",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gallerytales — one-of-one artifacts with a Story Passport. Static site + Stripe checkout function.",
+  "dependencies": {
+    "stripe": "^16.12.0"
+  }
+}
