@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
     const extrasSum = extras.reduce(function (s, e) { return s + e.price; }, 0);
     const total = subtotal + extrasSum + shipping;
 
-    const custAddr = [cust.addr, cust.zip, cust.city, cust.country].filter(Boolean).join(', ');
+    const custAddr = [cust.addr, cust.country].filter(Boolean).join(', ');
     const proto = (req.headers['x-forwarded-proto'] || 'https').split(',')[0];
     const origin = req.headers.origin || (proto + '://' + req.headers.host);
     const meta = {
@@ -52,6 +52,7 @@ module.exports = async (req, res) => {
       cust_name: String(cust.name || ''),
       cust_email: String(cust.email || ''),
       cust_phone: String(cust.phone || ''),
+      cust_country: String(cust.country || ''),
       cust_address: custAddr
     };
 
@@ -82,24 +83,19 @@ module.exports = async (req, res) => {
     const key = process.env.STRIPE_SECRET_KEY;
     if (!key) { res.status(500).json({ error: 'Payments are not configured yet (set MOLLIE_API_KEY or STRIPE_SECRET_KEY).' }); return; }
     const stripe = Stripe(key);
-    const line_items = chosen.concat(extras).map(function (it) {
+    // Address is collected on our side (worldwide), so we do not restrict or re-ask it on Stripe.
+    const allItems = chosen.concat(extras);
+    if (shipping > 0) allItems.push({ name: 'Insured shipping', price: shipping });
+    const line_items = allItems.map(function (it) {
       return { price_data: { currency: 'eur', product_data: { name: it.name }, unit_amount: Math.round(it.price * 100) }, quantity: 1 };
     });
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: line_items,
       customer_email: cust.email || undefined,
+      billing_address_collection: 'auto',
       success_url: origin + '/?paid=1',
       cancel_url: origin + '/?canceled=1',
-      phone_number_collection: { enabled: true },
-      shipping_address_collection: { allowed_countries: ['NL','BE','DE','FR','LU','AT','ES','IT','IE','PT','FI','SE','DK','PL'] },
-      shipping_options: [{
-        shipping_rate_data: {
-          type: 'fixed_amount',
-          fixed_amount: { amount: shipping * 100, currency: 'eur' },
-          display_name: shipping > 0 ? 'EU insured shipping' : 'Free EU shipping'
-        }
-      }],
       payment_intent_data: { description: 'Gallerytales order — passport in ' + lang },
       metadata: meta
     });
