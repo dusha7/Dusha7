@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
       const payload = {
         amount: { currency: 'EUR', value: total.toFixed(2) },
         description: 'Gallerytales order — ' + chosen.length + ' artifact(s)',
-        redirectUrl: origin + '/?paid=1',
+        redirectUrl: origin + '/?return=1',
         webhookUrl: origin + '/api/mollie-webhook',
         metadata: meta,
         billingEmail: cust.email || undefined
@@ -75,6 +75,17 @@ module.exports = async (req, res) => {
       if (!r.ok) { res.status(500).json({ error: (d && d.detail) || 'Mollie error' }); return; }
       const url = d && d._links && d._links.checkout && d._links.checkout.href;
       if (!url) { res.status(500).json({ error: 'Mollie did not return a checkout URL' }); return; }
+      // Mollie uses one redirectUrl for every outcome, so we send the payment id back
+      // with it and verify the real status via /api/order-status on return.
+      if (d.id) {
+        try {
+          await fetch('https://api.mollie.com/v2/payments/' + encodeURIComponent(d.id), {
+            method: 'PATCH',
+            headers: { 'Authorization': 'Bearer ' + process.env.MOLLIE_API_KEY, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ redirectUrl: origin + '/?return=1&ref=' + encodeURIComponent(d.id) })
+          });
+        } catch (e) { /* keep the neutral redirect */ }
+      }
       res.status(200).json({ url: url });
       return;
     }
@@ -94,8 +105,8 @@ module.exports = async (req, res) => {
       line_items: line_items,
       customer_email: cust.email || undefined,
       billing_address_collection: 'auto',
-      success_url: origin + '/?paid=1',
-      cancel_url: origin + '/?canceled=1',
+      success_url: origin + '/?return=1&ref={CHECKOUT_SESSION_ID}',
+      cancel_url: origin + '/?return=1',
       payment_intent_data: { description: 'Gallerytales order — passport in ' + lang },
       metadata: meta
     });

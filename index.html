@@ -751,7 +751,24 @@ footer{padding:64px clamp(20px,6vw,72px) 42px;border-top:1px solid var(--line);b
   if(termsLink)termsLink.addEventListener('click',function(e){e.preventDefault();openDoc('terms');});
   if(termsClose)termsClose.addEventListener('click',closeTerms);
 
-  try{var _qs=location.search||'';if(/[?&]paid=1/.test(_qs)){cart=[];save();renderCart();syncButtons();body.innerHTML='<p class="cart-empty">Thank you — payment received. The artifact is yours; its Story Passport is being prepared and we will email the delivery details shortly.</p>';countEl.textContent='0';var _oo3=document.getElementById('drawerOpts');if(_oo3)_oo3.hidden=true;openCart();history.replaceState(null,'',location.pathname);}else if(/[?&]canceled=1/.test(_qs)){history.replaceState(null,'',location.pathname);}}catch(e){}
+  try{
+    var _qs=location.search||'';
+    var _thanks=function(){cart=[];save();renderCart();syncButtons();body.innerHTML='<p class="cart-empty">Thank you — payment received. The artifact is yours; its Story Passport is being prepared and we will email the delivery details shortly.</p>';countEl.textContent='0';var _o=document.getElementById('drawerOpts');if(_o)_o.hidden=true;openCart();};
+    var _note=function(txt){renderCart();var _p=document.createElement('p');_p.className='cart-empty';_p.style.marginBottom='14px';_p.textContent=txt;body.insertBefore(_p,body.firstChild);openCart();};
+    if(/[?&]return=1/.test(_qs)){
+      var _m=/[?&]ref=([^&]+)/.exec(_qs);var _ref=_m?decodeURIComponent(_m[1]):'';
+      history.replaceState(null,'',location.pathname);
+      if(!_ref){_note('Payment was not completed — nothing has been charged. Your cabinet is untouched.');}
+      else{_note('Confirming your payment…');
+        fetch('/api/order-status?ref='+encodeURIComponent(_ref)).then(function(r){return r.json();}).then(function(d){
+          if(d&&d.paid){_thanks();}
+          else if(d&&(d.status==='open'||d.status==='pending'||d.status==='unpaid')){_note('Your payment is still being processed. We will email you as soon as it is confirmed.');}
+          else{_note('Payment was not completed — nothing has been charged. Your cabinet is untouched.');}
+        }).catch(function(){_note('We could not confirm the payment just now. If you were charged, we will email you shortly.');});
+      }
+    }else if(/[?&]paid=1/.test(_qs)){_thanks();history.replaceState(null,'',location.pathname);}
+    else if(/[?&]canceled=1/.test(_qs)){history.replaceState(null,'',location.pathname);}
+  }catch(e){}
 
   document.getElementById('circleForm').addEventListener('submit',function(e){e.preventDefault();var n=document.getElementById('formNote');this.reset();n.textContent='Your request is with the Circle. If the door opens for you, a sealed letter will follow.';n.style.color='#d8b878';});
 
