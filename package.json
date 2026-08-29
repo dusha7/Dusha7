@@ -2,8 +2,14 @@
   "name": "gallerytales",
   "version": "1.0.0",
   "private": true,
-  "description": "Gallerytales — one-of-one artifacts with a Story Passport. Static site + Stripe checkout function.",
+  "description": "Gallerytales — one-of-one artifacts with a Story Passport. Static site + Stripe checkout function. Also hosts the Astra esoteric Telegram bot.",
+  "scripts": {
+    "set-webhook": "node scripts/set-webhook.js"
+  },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
+    "@upstash/redis": "^1.34.3",
+    "astronomy-engine": "^2.1.19",
     "stripe": "^16.12.0"
   }
 }
