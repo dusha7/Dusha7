@@ -1,0 +1,36 @@
+{
+  "_comment": "Insured delivery per order, in EUR. EU delivery is already included in every product price. Edit the fees here; the site and the checkout both read this file.",
+  "zones": [
+    {
+      "id": "EU",
+      "label": "EU — included",
+      "fee": 0,
+      "countries": ["Austria", "Belgium", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Ireland", "Italy", "Latvia", "Lithuania", "Luxembourg", "Malta", "Netherlands", "Poland", "Portugal", "Romania", "Slovakia", "Slovenia", "Spain", "Sweden"]
+    },
+    {
+      "id": "EUROPE",
+      "label": "Europe outside the EU",
+      "fee": 15,
+      "countries": ["United Kingdom", "Switzerland", "Norway", "Iceland", "Liechtenstein", "Monaco", "Andorra", "Vatican City", "Albania", "Bosnia and Herzegovina", "Montenegro", "North Macedonia", "Serbia", "Kosovo", "Moldova", "Ukraine", "Turkey", "Georgia", "Armenia", "Azerbaijan"]
+    },
+    {
+      "id": "MIDDLE_EAST",
+      "label": "Middle East",
+      "fee": 35,
+      "countries": ["United Arab Emirates", "Saudi Arabia", "Qatar", "Kuwait", "Bahrain", "Oman", "Israel", "Jordan", "Lebanon", "Palestine", "Iraq", "Yemen"]
+    },
+    {
+      "id": "NORTH_AMERICA",
+      "label": "North America",
+      "fee": 50,
+      "countries": ["United States", "Canada", "Mexico", "Greenland"]
+    },
+    {
+      "id": "WORLD",
+      "label": "Rest of the world",
+      "fee": 60,
+      "countries": []
+    }
+  ],
+  "default": "WORLD"
+}
